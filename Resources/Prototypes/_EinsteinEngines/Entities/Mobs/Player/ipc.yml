@@ -184,6 +184,7 @@
   - type: Uncloneable
   - type: Sprinter # Goob Change: slight nerf to speed because heavy robot, mass contest when
     sprintSpeedMultiplier: 1.2
+  - type: XenomorphInfectionImmune # Goobstation
   - type: Tag
     tags:
     - SiliconMob

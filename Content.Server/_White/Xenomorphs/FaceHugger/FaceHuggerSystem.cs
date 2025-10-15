@@ -39,7 +39,6 @@ public sealed class FaceHuggerSystem : EntitySystem
     [Dependency] private readonly ReactiveSystem _reactiveSystem = default!; // Goobstation
     [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!; // Goobstation
     [Dependency] private readonly SharedTransformSystem _transform = default!; // Goobstation
-
     [Dependency] private readonly AudioSystem _audio = default!;
     [Dependency] private readonly BodySystem _body = default!;
     [Dependency] private readonly ContainerSystem _container = default!;
@@ -173,6 +172,7 @@ public sealed class FaceHuggerSystem : EntitySystem
     private void Infect(EntityUid uid, FaceHuggerComponent component)
     {
         if (!component.InfectionPrototype.HasValue
+            || HasComp<XenomorphInfectionImmuneComponent>(uid) // Goobstation
             || !TryComp<ClothingComponent>(uid, out var clothing)
             || clothing.InSlot != component.Slot
             || !_container.TryGetContainingContainer((uid, null, null), out var target))

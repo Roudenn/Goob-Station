@@ -53,6 +53,7 @@
   abstract: true
   components:
   - type: Carriable # Goobstation
+  - type: XenomorphInfectionImmune # Goobstation
   - type: HumanoidAppearance
     species: Skeleton
   - type: Icon

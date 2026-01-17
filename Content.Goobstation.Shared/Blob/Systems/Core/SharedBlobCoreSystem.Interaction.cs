@@ -101,7 +101,9 @@ public abstract partial class SharedBlobCoreSystem
 
         // Handle target attack on an entity.
         // Only hard objects should be attacked.
-        if (args.Target != null)
+        if (args.Target != null
+			&& TryComp<PhysicsComponent>(args.Target, out var physicsTarget)
+            && physicsTarget is { Hard: true, CanCollide: true })
         {
             // Things that we can't attack, including our own tiles.
             if (!HasComp<DamageableComponent>(args.Target)

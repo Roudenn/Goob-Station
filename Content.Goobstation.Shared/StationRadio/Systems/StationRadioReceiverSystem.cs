@@ -63,11 +63,7 @@ public sealed class StationRadioSystem : EntitySystem
     {
         if (args.Data.TryGetValue(DeviceNetworkConstants.Command, out string? command))
         {
-            switch (command)
-            {
-                case AudioRequestCommand:
 
-            }
         }
 
         // Relay everything else to receivers.
@@ -98,16 +94,18 @@ public sealed class StationRadioSystem : EntitySystem
         // TODO garbage noises if receives some other payload
     }
 
-    private void PlayAudio(Entity<StationRadioReceiverComponent> ent, SoundSpecifier? sound)
+    public void PlayAudio(Entity<StationRadioReceiverComponent> ent, SoundSpecifier? sound)
     {
-        // Remove the previous audio entity if it existed
-        if (ent.Comp.SoundEntity != null)
-            ent.Comp.SoundEntity = _audio.Stop(ent.Comp.SoundEntity);
-
+        StopAudio(ent);
         var audio = _audio.PlayPvs(sound,
             ent.Owner,
             AudioParams.Default.WithVolume(3f).WithMaxDistance(4.5f));
         if (audio != null)
             ent.Comp.SoundEntity = audio.Value.Entity;
+    }
+
+    public void StopAudio(Entity<StationRadioReceiverComponent> ent)
+    {
+        ent.Comp.SoundEntity = _audio.Stop(ent.Comp.SoundEntity);
     }
 }

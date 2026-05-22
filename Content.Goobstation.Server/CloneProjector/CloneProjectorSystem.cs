@@ -163,7 +163,7 @@ public sealed partial class CloneProjectorSystem : SharedCloneProjectorSystem
         TryGenerateClone(projector, args.User);
 
         if (projector.Comp.DoStun)
-            _stun.TryParalyze(args.User, projector.Comp.StunDuration, true);
+            _stun.TryUpdateParalyzeDuration(args.User, projector.Comp.StunDuration);
 
         EnsureComp<WearingCloneProjectorComponent>(args.User).ConnectedProjector = projector;
     }
@@ -177,7 +177,7 @@ public sealed partial class CloneProjectorSystem : SharedCloneProjectorSystem
         _popup.PopupEntity(popup, args.Equipee, args.Equipee);
 
         if (projector.Comp.DoStun)
-            _stun.TryParalyze(args.Equipee, projector.Comp.StunDuration, true);
+           _stun.TryUpdateParalyzeDuration(args.Equipee, projector.Comp.StunDuration);
 
         RemComp<WearingCloneProjectorComponent>(args.Equipee);
     }
@@ -304,7 +304,7 @@ public sealed partial class CloneProjectorSystem : SharedCloneProjectorSystem
     public bool TryInsertClone(Entity<CloneProjectorComponent> projector, bool doCooldown = false)
     {
         if (projector.Comp.CloneUid is not { } clone
-            || _container.IsEntityOrParentInContainer(clone))
+            || !IsCloneDeployed(projector))
             return false;
 
         CleanClone(clone);
@@ -328,10 +328,18 @@ public sealed partial class CloneProjectorSystem : SharedCloneProjectorSystem
         return true;
     }
 
+    private bool IsCloneDeployed(CloneProjectorComponent projector)
+    {
+        if (projector.CloneUid is not { } clone)
+            return false;
+
+        return !_container.IsEntityOrParentInContainer(clone);
+    }
+
     private bool TryDeployClone(CloneProjectorComponent projector)
     {
         if (projector.CloneUid is not { } clone
-            || !_container.IsEntityOrParentInContainer(clone))
+            || IsCloneDeployed(projector))
             return false;
 
         return _container.TryRemoveFromContainer(clone);

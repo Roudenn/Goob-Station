@@ -34,6 +34,7 @@ using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Maps;
+using Content.Shared.Station.Components;
 using Robust.Shared.Configuration;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
@@ -167,6 +168,7 @@ public sealed partial class LavalandSystem : EntitySystem
         while (query.MoveNext(out var uid, out _, out var grid))
         {
             _station.AddGridToStation(args.Station, uid, grid, args.Station.Comp);
+            Comp<StationMemberComponent>(uid).EventsEnabled = false;
         }
     }
 }

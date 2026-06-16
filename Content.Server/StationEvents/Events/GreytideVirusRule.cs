@@ -77,7 +77,7 @@ public sealed class GreytideVirusRule : StationEventSystem<GreytideVirusRuleComp
                 continue;
 
             // make sure not to hit CentCom or other maps
-            if (CompOrNull<StationMemberComponent>(xform.GridUid)?.Station != chosenStation)
+            if (CheckStationMember(xform.GridUid, chosenStation, gameRule.Global)) // Goobstation edit - added a specific method
                 continue;
 
             // check access
@@ -99,7 +99,7 @@ public sealed class GreytideVirusRule : StationEventSystem<GreytideVirusRuleComp
                 continue;
 
             // make sure not to hit CentCom or other maps
-            if (CompOrNull<StationMemberComponent>(xform.GridUid)?.Station != chosenStation)
+            if (CheckStationMember(xform.GridUid, chosenStation, gameRule.Global)) // Goobstation edit - added a specific method
                 continue;
 
             // use the access reader from the door electronics if they exist

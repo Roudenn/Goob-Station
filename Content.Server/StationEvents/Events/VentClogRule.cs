@@ -53,7 +53,7 @@ public sealed class VentClogRule : StationEventSystem<VentClogRuleComponent>
 
         foreach (var (_, transform) in EntityQuery<GasVentPumpComponent, TransformComponent>())
         {
-            if (CompOrNull<StationMemberComponent>(transform.GridUid)?.Station != chosenStation)
+            if (CheckStationMember(transform.GridUid, chosenStation, gameRule.Global)) // Goobstation edit - added a specific method
             {
                 continue;
             }

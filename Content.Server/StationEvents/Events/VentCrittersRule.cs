@@ -94,7 +94,7 @@ public sealed class VentCrittersRule : StationEventSystem<VentCrittersRuleCompon
         Spawn(specialEntry.PrototypeId, coords);
     }
 
-    private void PickLocation(VentCrittersRuleComponent comp)
+    private void PickLocation(VentCrittersRuleComponent comp, bool isGlobal = false) // Goobstation edit - added isGlobal
     {
         if (!TryGetRandomStation(out var station))
             return;
@@ -103,7 +103,7 @@ public sealed class VentCrittersRule : StationEventSystem<VentCrittersRuleCompon
         _locations.Clear();
         while (locations.MoveNext(out var uid, out _, out var transform))
         {
-            if (CompOrNull<StationMemberComponent>(transform.GridUid)?.Station == station)
+            if (CheckStationMember(transform.GridUid, station, isGlobal)) // Goobstation edit - added a specific method
             {
                 _locations.Add(transform.Coordinates);
             }

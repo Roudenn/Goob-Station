@@ -963,6 +963,7 @@
   # Goobstation
   - type: GameRule
     chaosScore: 150
+    global: true # Goobstation
   - type: IonStormRule
 
 - type: entity

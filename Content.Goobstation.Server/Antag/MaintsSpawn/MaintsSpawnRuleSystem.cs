@@ -32,7 +32,7 @@ public sealed class MaintsSpawnRule : StationEventSystem<MaintsSpawnRuleComponen
         var validLocations = new List<MapCoordinates>();
         while (locations.MoveNext(out _, out _, out var transform))
         {
-            if (CompOrNull<StationMemberComponent>(transform.GridUid)?.Station != station)
+            if (CheckStationMember(transform.GridUid, station, gameRule.Global)) // Goobstation edit - added a specific method
                 continue;
 
             validLocations.Add(_transform.GetMapCoordinates(transform));

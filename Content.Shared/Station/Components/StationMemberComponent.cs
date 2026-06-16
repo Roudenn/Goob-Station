@@ -25,4 +25,12 @@ public sealed partial class StationMemberComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public EntityUid Station = EntityUid.Invalid;
+
+    /// <summary>
+    /// Goobstation
+    /// When true, allows this grid to participate in station events.
+    /// Can be overriden by the Global bool in Gamerule component.
+    /// </summary>
+    [DataField]
+    public bool EventsEnabled = true;
 }

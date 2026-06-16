@@ -53,8 +53,8 @@ public sealed partial class GameRuleComponent : Component
     [DataField]
     public MinMax? Delay;
 
-    // Goobstation
     /// <summary>
+    ///   Goobstation
     ///   Used by SecretPlus to weight this event in addition to StationEventComponent's weight.
     ///   In GameRuleComponent to be usable for roundstart events.
     ///   See SecretPlus documentation for more information.
@@ -63,6 +63,14 @@ public sealed partial class GameRuleComponent : Component
     /// </summary>
     [DataField]
     public float? ChaosScore = null;
+
+    /// <summary>
+    /// Goobstation
+    /// If true, this event can occur on all station member grids, even the ones that them disabled.
+    /// Use this for events that are shared between the station and all connected grids.
+    /// </summary>
+    [DataField]
+    public bool Global;
 }
 
 /// <summary>

@@ -18,7 +18,7 @@ public sealed class VentSpawnRule : StationEventSystem<VentSpawnRuleComponent>
 
         SubscribeLocalEvent<VentSpawnRuleComponent, AntagSelectLocationEvent>(OnSelectLocation);
     }
-    
+
     private void OnSelectLocation(Entity<VentSpawnRuleComponent> ent, ref AntagSelectLocationEvent args)
     {
         var comp = Comp<GameRuleComponent>(args.GameRule);
@@ -33,7 +33,7 @@ public sealed class VentSpawnRule : StationEventSystem<VentSpawnRuleComponent>
         var validLocations = new List<MapCoordinates>();
         while (locations.MoveNext(out _, out _, out var transform))
         {
-            if (CompOrNull<StationMemberComponent>(transform.GridUid)?.Station != station)
+            if (CheckStationMember(transform.GridUid, station, comp.Global)) // Goobstation edit - added a specific method
                 continue;
 
             validLocations.Add(_transform.GetMapCoordinates(transform));

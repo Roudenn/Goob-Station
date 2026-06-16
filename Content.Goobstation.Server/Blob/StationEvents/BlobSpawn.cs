@@ -55,7 +55,7 @@ public sealed class BlobSpawnRule : StationEventSystem<BlobSpawnRuleComponent>
             if (!HasComp<BecomesStationComponent>(transform.GridUid))
                 continue;
 
-            if (CompOrNull<StationMemberComponent>(transform.GridUid)?.Station == station)
+            if (CheckStationMember(transform.GridUid, station, gameRule.Global)) // Goobstation edit - added a specific method
             {
                 validLocations.Add(transform.Coordinates);
             }

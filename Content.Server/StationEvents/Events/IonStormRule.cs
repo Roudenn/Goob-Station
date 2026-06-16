@@ -35,7 +35,7 @@ public sealed class IonStormRule : StationEventSystem<IonStormRuleComponent>
         while (query.MoveNext(out var ent, out var lawBound, out var xform, out var target))
         {
             // only affect law holders on the station
-            if (CompOrNull<StationMemberComponent>(xform.GridUid)?.Station != chosenStation)
+            if (CheckStationMember(xform.GridUid, chosenStation, gameRule.Global)) // Goobstation edit - added a specific method
                 continue;
 
             _ionStorm.IonStormTarget((ent, lawBound, target));

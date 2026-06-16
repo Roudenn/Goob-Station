@@ -44,7 +44,7 @@ namespace Content.Server.StationEvents.Events
             var query = AllEntityQuery<ApcComponent, TransformComponent>();
             while (query.MoveNext(out var apcUid ,out var apc, out var transform))
             {
-                if (apc.MainBreakerEnabled && CompOrNull<StationMemberComponent>(transform.GridUid)?.Station == chosenStation)
+                if (apc.MainBreakerEnabled && CheckStationMember(transform.GridUid, chosenStation, gameRule.Global)) // Goobstation edit - added a specific method
                     component.Powered.Add(apcUid);
             }
 

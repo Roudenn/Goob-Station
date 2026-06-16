@@ -53,7 +53,7 @@ public sealed class BreakerFlipRule : StationEventSystem<BreakerFlipRuleComponen
         var query = EntityQueryEnumerator<ApcComponent, TransformComponent>();
         while (query.MoveNext(out var apcUid, out var apc, out var xform))
         {
-            if (apc.MainBreakerEnabled && CompOrNull<StationMemberComponent>(xform.GridUid)?.Station == chosenStation)
+            if (apc.MainBreakerEnabled && CheckStationMember(xform.GridUid, chosenStation, gameRule.Global)) // Goobstation edit - added a specific method
             {
                 stationApcs.Add((apcUid, apc));
             }

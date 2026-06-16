@@ -18,24 +18,17 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Server.Station.Components;
-using Content.Server.Station.Systems;
 using Content.Shared.GameTicking.Components;
-using Content.Shared.Maps;
 using Content.Shared.Random.Helpers;
 using Content.Shared.Station.Components;
 using Robust.Shared.Collections;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Random;
-using Robust.Shared.Utility;
 
 namespace Content.Server.GameTicking.Rules;
 
 public abstract partial class GameRuleSystem<T> where T: IComponent
 {
-    [Dependency] private readonly StationSystem _station = default!; // Goobstation
-    [Dependency] private readonly TurfSystem _turf = default!; // Goobstation
-
     protected EntityQueryEnumerator<ActiveGameRuleComponent, T, GameRuleComponent> QueryActiveRules()
     {
         return EntityQueryEnumerator<ActiveGameRuleComponent, T, GameRuleComponent>();
@@ -103,9 +96,8 @@ public abstract partial class GameRuleSystem<T> where T: IComponent
         return false;
     }
 
-    // Goobstation start
     // Goobstation - refactored this method. Split into 3 smaller methods and made it so that it picks main station grid.
-    protected bool TryFindRandomTileOnStation(Entity<StationDataComponent> station,
+    /*protected bool TryFindRandomTileOnStation(Entity<StationDataComponent> station,
         out Vector2i tile,
         out EntityUid targetGrid,
         out EntityCoordinates targetCoords)
@@ -114,54 +106,46 @@ public abstract partial class GameRuleSystem<T> where T: IComponent
         targetCoords = EntityCoordinates.Invalid;
         targetGrid = EntityUid.Invalid;
 
-        if (GetStationMainGrid(station.Comp) is not { } grid)
+        // Weight grid choice by tilecount
+        var weights = new Dictionary<Entity<MapGridComponent>, float>();
+        foreach (var possibleTarget in station.Comp.Grids)
+        {
+            if (!TryComp<MapGridComponent>(possibleTarget, out var comp))
+                continue;
+
+            weights.Add((possibleTarget, comp), _map.GetAllTiles(possibleTarget, comp).Count());
+        }
+
+        if (weights.Count == 0)
+        {
+            targetGrid = EntityUid.Invalid;
             return false;
+        }
 
-        targetGrid = grid.Owner;
-        return TryFindTileOnGrid(grid, out tile, out targetCoords);
-    }
+        (targetGrid, var gridComp) = RobustRandom.Pick(weights);
 
-    protected Entity<MapGridComponent>? GetStationMainGrid(StationDataComponent station)
-    {
-        if ((station.Grids.FirstOrNull(HasComp<BecomesStationComponent>) ?? _station.GetLargestGrid(station.Owner)) is not //todo goobstation station.owner obsolete patchup
-            { } grid || !TryComp(grid, out MapGridComponent? gridComp))
-            return null;
+        var found = false;
+        var aabb = gridComp.LocalAABB;
 
-        return (grid, gridComp);
-    }
-
-    protected bool TryFindTileOnGrid(Entity<MapGridComponent> grid,
-        out Vector2i tile,
-        out EntityCoordinates targetCoords,
-        int tries = 10)
-    {
-        tile = default;
-        targetCoords = EntityCoordinates.Invalid;
-
-        var aabb = grid.Comp.LocalAABB;
-
-        for (var i = 0; i < tries; i++)
+        for (var i = 0; i < 10; i++)
         {
             var randomX = RobustRandom.Next((int) aabb.Left, (int) aabb.Right);
             var randomY = RobustRandom.Next((int) aabb.Bottom, (int) aabb.Top);
 
             tile = new Vector2i(randomX, randomY);
-
-            if (!_map.TryGetTile(grid.Comp, tile, out var selectedTile) || selectedTile.IsEmpty ||
-                _turf.IsSpace(selectedTile))
+            if (_atmosphere.IsTileSpace(targetGrid, Transform(targetGrid).MapUid, tile)
+                || _atmosphere.IsTileAirBlockedCached(targetGrid, tile))
+            {
                 continue;
+            }
 
-            if (_atmosphere.IsTileSpace(grid.Owner, Transform(grid.Owner).MapUid, tile)
-                || _atmosphere.IsTileAirBlocked(grid.Owner, tile, mapGridComp: grid.Comp))
-                continue;
-
-            targetCoords = _map.GridTileToLocal(grid.Owner, grid.Comp, tile);
-            return true;
+            found = true;
+            targetCoords = _map.GridTileToLocal(targetGrid, gridComp, tile);
+            break;
         }
 
-        return false;
-    }
-    // Goobstation end
+        return found;
+    }*/
 
     protected void ForceEndSelf(EntityUid uid, GameRuleComponent? component = null)
     {

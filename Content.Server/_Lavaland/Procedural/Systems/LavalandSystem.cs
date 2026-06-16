@@ -28,6 +28,8 @@ using Content.Server.GameTicking;
 using Content.Server.Parallax;
 using Content.Server.Procedural;
 using Content.Server.Shuttles.Systems;
+using Content.Server.Station.Events;
+using Content.Server.Station.Systems;
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs.Components;
@@ -46,8 +48,6 @@ namespace Content.Server._Lavaland.Procedural.Systems;
 
 public sealed partial class LavalandSystem : EntitySystem
 {
-    public bool LavalandEnabled = true;
-
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly TileSystem _tile = default!;
@@ -65,6 +65,9 @@ public sealed partial class LavalandSystem : EntitySystem
     [Dependency] private readonly MapLoaderSystem _mapLoader = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly ShuttleSystem _shuttle = default!;
+    [Dependency] private readonly StationSystem _station = default!;
+
+    public bool LavalandEnabled = true;
 
     private EntityQuery<MapGridComponent> _gridQuery;
     private EntityQuery<TransformComponent> _xformQuery;
@@ -77,6 +80,7 @@ public sealed partial class LavalandSystem : EntitySystem
         SubscribeLocalEvent<LoadingMapsEvent>(OnLoadingMaps);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<MobStateComponent, EntParentChangedMessage>(OnPlayerParentChange);
+        SubscribeLocalEvent<StationPostInitEvent>(OnStationPostInit);
 
         _gridQuery = GetEntityQuery<MapGridComponent>();
         _xformQuery = GetEntityQuery<TransformComponent>();
@@ -155,5 +159,14 @@ public sealed partial class LavalandSystem : EntitySystem
         }
 
         return lavalands;
+    }
+
+    private void OnStationPostInit(ref StationPostInitEvent args)
+    {
+        var query = EntityQueryEnumerator<LavalandStationComponent, MapGridComponent>();
+        while (query.MoveNext(out var uid, out _, out var grid))
+        {
+            _station.AddGridToStation(args.Station, uid, grid, args.Station.Comp);
+        }
     }
 }

@@ -196,9 +196,6 @@ public sealed class SuitSensorSystem : EntitySystem
                 sensor.ConnectedServer = address;
             }
 
-            // Send it to the connected server
-            var payload = SuitSensorToPacket(status);
-
             // Clear the connected server if its address isn't on the network
             if (!_deviceNetworkSystem.IsAddressPresent(device.DeviceNetId, sensor.ConnectedServer))
             {
@@ -206,7 +203,7 @@ public sealed class SuitSensorSystem : EntitySystem
                 continue;
             }
 
-            _deviceNetworkSystem.QueuePacket(uid, sensor.ConnectedServer, payload, device: device);
+            _deviceNetworkSystem.QueuePacket(uid, sensor.ConnectedServer, status, device: device);
         }
     }
 
@@ -542,71 +539,6 @@ public sealed class SuitSensorSystem : EntitySystem
                 break;
         }
 
-        return status;
-    }
-
-    /// <summary>
-    ///     Serialize create a device network package from the suit sensors status.
-    /// </summary>
-    public NetworkPayload SuitSensorToPacket(SuitSensorStatus status)
-    {
-        var payload = new NetworkPayload()
-        {
-            [DeviceNetworkConstants.Command] = DeviceNetworkConstants.CmdUpdatedState,
-            [SuitSensorConstants.NET_NAME] = status.Name,
-            [SuitSensorConstants.NET_JOB] = status.Job,
-            [SuitSensorConstants.NET_JOB_ICON] = status.JobIcon,
-            [SuitSensorConstants.NET_JOB_DEPARTMENTS] = status.JobDepartments,
-            [SuitSensorConstants.NET_IS_ALIVE] = status.IsAlive,
-            [SuitSensorConstants.NET_IS_COMMAND] = status.IsCommandTracker, //Goob station
-            [SuitSensorConstants.NET_SUIT_SENSOR_UID] = status.SuitSensorUid,
-            [SuitSensorConstants.NET_OWNER_UID] = status.OwnerUid,
-        };
-
-        if (status.TotalDamage != null)
-            payload.Add(SuitSensorConstants.NET_TOTAL_DAMAGE, status.TotalDamage);
-        if (status.TotalDamageThreshold != null)
-            payload.Add(SuitSensorConstants.NET_TOTAL_DAMAGE_THRESHOLD, status.TotalDamageThreshold);
-        if (status.Coordinates != null)
-            payload.Add(SuitSensorConstants.NET_COORDINATES, status.Coordinates);
-
-        return payload;
-    }
-
-    /// <summary>
-    ///     Try to create the suit sensors status from the device network message
-    /// </summary>
-    public SuitSensorStatus? PacketToSuitSensor(NetworkPayload payload)
-    {
-        // check command
-        if (!payload.TryGetValue(DeviceNetworkConstants.Command, out string? command))
-            return null;
-        if (command != DeviceNetworkConstants.CmdUpdatedState)
-            return null;
-
-        // check name, job and alive
-        if (!payload.TryGetValue(SuitSensorConstants.NET_NAME, out string? name)) return null;
-        if (!payload.TryGetValue(SuitSensorConstants.NET_JOB, out string? job)) return null;
-        if (!payload.TryGetValue(SuitSensorConstants.NET_JOB_ICON, out string? jobIcon)) return null;
-        if (!payload.TryGetValue(SuitSensorConstants.NET_JOB_DEPARTMENTS, out List<string>? jobDepartments)) return null;
-        if (!payload.TryGetValue(SuitSensorConstants.NET_IS_ALIVE, out bool? isAlive)) return null;
-        if (!payload.TryGetValue(SuitSensorConstants.NET_IS_COMMAND, out bool iscommand)) return null; //Goob station
-        if (!payload.TryGetValue(SuitSensorConstants.NET_SUIT_SENSOR_UID, out NetEntity suitSensorUid)) return null;
-        if (!payload.TryGetValue(SuitSensorConstants.NET_OWNER_UID, out NetEntity ownerUid)) return null;
-
-        // try get total damage and cords (optionals)
-        payload.TryGetValue(SuitSensorConstants.NET_TOTAL_DAMAGE, out int? totalDamage);
-        payload.TryGetValue(SuitSensorConstants.NET_TOTAL_DAMAGE_THRESHOLD, out int? totalDamageThreshold);
-        payload.TryGetValue(SuitSensorConstants.NET_COORDINATES, out NetCoordinates? coords);
-
-        var status = new SuitSensorStatus(ownerUid, suitSensorUid, name, job, jobIcon, jobDepartments)
-        {
-            IsAlive = isAlive.Value,
-            TotalDamage = totalDamage,
-            TotalDamageThreshold = totalDamageThreshold,
-            Coordinates = coords,
-            IsCommandTracker = iscommand,//Goob station
-        };
         return status;
     }
 }

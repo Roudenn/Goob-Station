@@ -60,11 +60,10 @@ public sealed class FaxSlipSystem : EntitySystem
             if (!args.Fax.Comp.KnownFaxes.TryGetValue(args.Fax.Comp.DestinationFaxAddress, out var faxName))
                 return;
 
-            var payload = new NetworkPayload()
+            var payload = new FaxSendEntityPayload
             {
-                { DeviceNetworkConstants.Command, FaxConstants.FaxSendEntityCommand },
-                { FaxConstants.FaxEntitySentData, args.Fax.Comp.PaperSlot.Item },
-                { FaxConstants.FaxWorkCrossGridData, ent.Comp.CrossGrid }
+                Entity = args.Fax.Comp.PaperSlot.Item,
+                CrossGrids = ent.Comp.CrossGrid,
             };
 
             _deviceNetwork.QueuePacket(args.Fax, args.Fax.Comp.DestinationFaxAddress, payload);

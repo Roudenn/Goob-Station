@@ -56,7 +56,9 @@ public sealed class StartableMachineSystem : EntitySystem
         else if (args.Port == ent.Comp.AutoStartPort)
         {
             var state = SignalState.Momentary;
-            args.Data?.TryGetValue<SignalState>("logic_state", out state);
+            if (args.Data is LogicStatePayload payload)
+                state = payload.State;
+
             ent.Comp.AutoStart = state switch
             {
                 SignalState.Momentary => !ent.Comp.AutoStart,

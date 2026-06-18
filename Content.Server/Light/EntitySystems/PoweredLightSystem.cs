@@ -144,6 +144,7 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.Damage.Components;
 using Content.Shared.DeviceNetwork;
 using Content.Shared.DeviceNetwork.Events;
+using Content.Shared.DeviceNetwork.Payloads;
 using Content.Shared.Power;
 
 namespace Content.Server.Light.EntitySystems
@@ -494,10 +495,9 @@ namespace Content.Server.Light.EntitySystems
         private void OnPacketReceived(Entity<PoweredLightComponent> ent, ref DeviceNetworkPacketEvent args)
         {
             var (uid, component) = ent;
-            if (!args.Data.TryGetValue(DeviceNetworkConstants.Command, out string? command) || command != DeviceNetworkConstants.CmdSetState) return;
-            if (!args.Data.TryGetValue(DeviceNetworkConstants.StateEnabled, out bool enabled)) return;
+            if (args.Data is not TogglePayload toggle) return;
 
-            SetState(uid, enabled, component);
+            SetState(uid, toggle.Enabled, component);
         }
 
         private void SetLight(EntityUid uid, bool value, Color? color = null, PoweredLightComponent? light = null, float? radius = null, float? energy = null, float? softness = null)

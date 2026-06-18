@@ -60,12 +60,11 @@ public sealed class CrewMonitoringServerSystem : EntitySystem
     /// </summary>
     private void OnPacketReceived(Entity<CrewMonitoringServerComponent> ent, ref DeviceNetworkPacketEvent args)
     {
-        var sensorStatus = _sensors.PacketToSuitSensor(args.Data);
-        if (sensorStatus == null)
+        if (args.Data is not SuitSensorStatus status)
             return;
 
-        sensorStatus.Timestamp = _gameTiming.CurTime;
-        ent.Comp.SensorStatus[args.SenderAddress] = sensorStatus;
+        status.Timestamp = _gameTiming.CurTime;
+        ent.Comp.SensorStatus[args.SenderAddress] = status;
     }
 
     /// <summary>
@@ -100,10 +99,9 @@ public sealed class CrewMonitoringServerSystem : EntitySystem
         if (!Resolve(uid, ref serverComponent, ref device))
             return;
 
-        var payload = new NetworkPayload()
+        var payload = new BroadcastSuitSensorStatePayload()
         {
-            [DeviceNetworkConstants.Command] = DeviceNetworkConstants.CmdUpdatedState,
-            [SuitSensorConstants.NET_STATUS_COLLECTION] = serverComponent.SensorStatus
+            SensorStatus = serverComponent.SensorStatus,
         };
 
         _deviceNetworkSystem.QueuePacket(uid, null, payload, device: device);

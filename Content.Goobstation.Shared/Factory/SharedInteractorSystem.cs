@@ -103,7 +103,9 @@ public abstract class SharedInteractorSystem : EntitySystem
             return;
 
         var state = SignalState.Momentary;
-        args.Data?.TryGetValue<SignalState>("logic_state", out state);
+        if (args.Data is LogicStatePayload payload)
+            state = payload.State;
+
         var alt = state switch
         {
             SignalState.Momentary => !ent.Comp.AltInteract,

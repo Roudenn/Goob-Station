@@ -63,8 +63,6 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
 
-    public const string InvokedPort = "link_port";
-
     /// <inheritdoc/>
     public override void Initialize()
     {
@@ -632,9 +630,9 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
         if (!Resolve(uid, ref comp))
             return;
 
-        var data = new NetworkPayload
+        var data = new LogicStatePayload()
         {
-            [DeviceNetworkConstants.LogicState] = signal ? SignalState.High : SignalState.Low
+            State = signal ? SignalState.High : SignalState.Low,
         };
         InvokePort(uid, port, data, comp);
 

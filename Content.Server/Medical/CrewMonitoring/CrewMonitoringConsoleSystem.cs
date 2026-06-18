@@ -20,13 +20,9 @@
 
 using System.Linq;
 using Content.Goobstation.Shared.CrewMonitoring;
-using Content.Server.DeviceNetwork;
-using Content.Server.DeviceNetwork.Systems;
 using Content.Server.PowerCell;
-using Content.Shared.DeviceNetwork;
 using Content.Shared.DeviceNetwork.Events;
 using Content.Shared.Medical.CrewMonitoring;
-using Content.Shared.Medical.SuitSensor;
 using Content.Shared.Pinpointer;
 using Robust.Server.GameObjects;
 
@@ -53,19 +49,10 @@ public sealed class CrewMonitoringConsoleSystem : EntitySystem
     private void OnPacketReceived(Entity<CrewMonitoringConsoleComponent> ent, ref DeviceNetworkPacketEvent args)
     {
         var (uid, component) = ent;
-        var payload = args.Data;
-
-        // Check command
-        if (!payload.TryGetValue(DeviceNetworkConstants.Command, out string? command))
+        if (args.Data is not BroadcastSuitSensorStatePayload broadcast)
             return;
 
-        if (command != DeviceNetworkConstants.CmdUpdatedState)
-            return;
-
-        if (!payload.TryGetValue(SuitSensorConstants.NET_STATUS_COLLECTION, out Dictionary<string, SuitSensorStatus>? sensorStatus))
-            return;
-        component.ConnectedSensors = sensorStatus;
-
+        component.ConnectedSensors = broadcast.SensorStatus;
         UpdateUserInterface(uid, component);
     }
 

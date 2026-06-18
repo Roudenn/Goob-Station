@@ -159,16 +159,10 @@ public sealed partial class SensorMonitoringConsoleSystem : EntitySystem
         if (!component.Sensors.TryGetValue(args.Sender, out var sensorData))
             return;
 
-        if (!args.Data.TryGetValue(DeviceNetworkConstants.Command, out string? command))
-            return;
-
         switch (sensorData.DeviceType)
         {
             case SensorDeviceType.Teg:
-                if (command != TegSystem.DeviceNetworkCommandSyncData)
-                    return;
-
-                if (!args.Data.TryGetValue(TegSystem.DeviceNetworkCommandSyncData, out TegSensorData? tegData))
+                if (args.Data is not TegSensorPayload tegData)
                     return;
 
                 // @formatter:off
@@ -190,10 +184,7 @@ public sealed partial class SensorMonitoringConsoleSystem : EntitySystem
                 break;
 
             case SensorDeviceType.AtmosSensor:
-                if (command != AtmosDeviceNetworkSystem.SyncData)
-                    return;
-
-                if (!args.Data.TryGetValue(AtmosDeviceNetworkSystem.SyncData, out AtmosSensorData? atmosData))
+                if (args.Data is not AtmosSyncDevicePayload { Data: AtmosSensorDataPayload atmosData })
                     return;
 
                 // @formatter:off
@@ -203,10 +194,7 @@ public sealed partial class SensorMonitoringConsoleSystem : EntitySystem
                 break;
 
             case SensorDeviceType.ThermoMachine:
-                if (command != AtmosDeviceNetworkSystem.SyncData)
-                    return;
-
-                if (!args.Data.TryGetValue(AtmosDeviceNetworkSystem.SyncData, out GasThermoMachineData? thermoData))
+                if (args.Data is not AtmosSyncDevicePayload { Data: GasThermoMachineData thermoData })
                     return;
 
                 // @formatter:off
@@ -215,10 +203,7 @@ public sealed partial class SensorMonitoringConsoleSystem : EntitySystem
                 break;
 
             case SensorDeviceType.VolumePump:
-                if (command != AtmosDeviceNetworkSystem.SyncData)
-                    return;
-
-                if (!args.Data.TryGetValue(AtmosDeviceNetworkSystem.SyncData, out GasVolumePumpData? volumePumpData))
+                if (args.Data is not AtmosSyncDevicePayload { Data: GasVolumePumpData volumePumpData })
                     return;
 
                 // @formatter:off
@@ -227,11 +212,10 @@ public sealed partial class SensorMonitoringConsoleSystem : EntitySystem
                 break;
 
             case SensorDeviceType.Battery:
-                if (command != BatterySensorSystem.DeviceNetworkCommandSyncData)
+                if (args.Data is not BatterySensorSyncPayload payload)
                     return;
 
-                if (!args.Data.TryGetValue(BatterySensorSystem.DeviceNetworkCommandSyncData, out BatterySensorData? batteryData))
-                    return;
+                var batteryData = payload.Data;
 
                 // @formatter:off
                 WriteSample(component, sensorData, "charge",        SensorUnit.EnergyJ, batteryData.Charge);
@@ -281,19 +265,13 @@ public sealed partial class SensorMonitoringConsoleSystem : EntitySystem
             switch (data.DeviceType)
             {
                 case SensorDeviceType.Teg:
-                    payload = new NetworkPayload
-                    {
-                        [DeviceNetworkConstants.Command] = TegSystem.DeviceNetworkCommandSyncData
-                    };
+                    payload = new TegSensorSyncPayload();
                     break;
 
                 case SensorDeviceType.AtmosSensor:
                 case SensorDeviceType.ThermoMachine:
                 case SensorDeviceType.VolumePump:
-                    payload = new NetworkPayload
-                    {
-                        [DeviceNetworkConstants.Command] = AtmosDeviceNetworkSystem.SyncData
-                    };
+                    payload = new AtmosSyncDevicePayload();
                     break;
 
                 default:
@@ -315,12 +293,8 @@ public sealed partial class SensorMonitoringConsoleSystem : EntitySystem
             switch (data.DeviceType)
             {
                 case SensorDeviceType.Battery:
-                    payload = new NetworkPayload
-                    {
-                        [DeviceNetworkConstants.Command] = BatterySensorSystem.DeviceNetworkCommandSyncData
-                    };
+                    payload = new BatterySensorRequestPayload();
                     break;
-
                 default:
                     // Unknown device type, don't do anything.
                     continue;

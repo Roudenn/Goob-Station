@@ -69,6 +69,7 @@ using Content.Shared.DeviceNetwork.Components;
 using Content.Shared.Emag.Systems;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Popups;
+using Content.Shared.Screens;
 using Robust.Server.GameObjects;
 using Robust.Shared.Configuration;
 
@@ -340,9 +341,9 @@ namespace Content.Server.Communications
             if (!TryComp<DeviceNetworkComponent>(uid, out var net))
                 return;
 
-            var payload = new NetworkPayload
+            var payload = new ScreenTextPayload
             {
-                [ScreenMasks.Text] = message.Message
+                Text = message.Message,
             };
 
             _deviceNetworkSystem.QueuePacket(uid, null, payload, net.TransmitFrequency);

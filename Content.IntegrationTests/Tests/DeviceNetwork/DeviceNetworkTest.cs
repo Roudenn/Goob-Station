@@ -24,6 +24,7 @@ using Content.Shared.DeviceNetwork;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Content.Shared.DeviceNetwork.Components;
+using Robust.Shared.Serialization.Manager.Attributes;
 
 namespace Content.IntegrationTests.Tests.DeviceNetwork
 {
@@ -84,11 +85,11 @@ namespace Content.IntegrationTests.Tests.DeviceNetwork
             DeviceNetworkComponent networkComponent2 = null;
 
             var testValue = "test";
-            var payload = new NetworkPayload
+            var payload = new TestPayload
             {
-                ["Test"] = testValue,
-                ["testnumber"] = 1,
-                ["testbool"] = true
+                TestString = testValue,
+                TestNumber = 1,
+                TestBool = true
             };
 
             await server.WaitAssertion(() =>
@@ -121,7 +122,7 @@ namespace Content.IntegrationTests.Tests.DeviceNetwork
 
             await server.WaitAssertion(() =>
             {
-                Assert.That(payload, Is.EquivalentTo(deviceNetTestSystem.LastPayload));
+                Assert.That(payload, Is.EqualTo(deviceNetTestSystem.LastPayload));
             });
             await pair.CleanReturnAsync();
         }
@@ -146,11 +147,11 @@ namespace Content.IntegrationTests.Tests.DeviceNetwork
             WirelessNetworkComponent wirelessNetworkComponent = null;
 
             var testValue = "test";
-            var payload = new NetworkPayload
+            var payload = new TestPayload
             {
-                ["Test"] = testValue,
-                ["testnumber"] = 1,
-                ["testbool"] = true
+                TestString = testValue,
+                TestNumber = 1,
+                TestBool = true
             };
 
             await server.WaitAssertion(() =>
@@ -188,16 +189,13 @@ namespace Content.IntegrationTests.Tests.DeviceNetwork
 
             await server.WaitAssertion(() =>
             {
-                Assert.That(payload, Is.EqualTo(deviceNetTestSystem.LastPayload).AsCollection);
+                Assert.That(payload, Is.EqualTo(deviceNetTestSystem.LastPayload));
 
-                payload = new NetworkPayload
-                {
-                    ["Wirelesstest"] = 5
-                };
+                var secondPayload = new SecondTestPayload();
 
                 wirelessNetworkComponent.Range = 0;
 
-                deviceNetSystem.QueuePacket(device1, networkComponent2.Address, payload, networkComponent2.ReceiveFrequency.Value);
+                deviceNetSystem.QueuePacket(device1, networkComponent2.Address, secondPayload, networkComponent2.ReceiveFrequency.Value);
             });
 
             await server.WaitRunTicks(1);
@@ -205,7 +203,7 @@ namespace Content.IntegrationTests.Tests.DeviceNetwork
 
             await server.WaitAssertion(() =>
             {
-                Assert.That(payload, Is.Not.EqualTo(deviceNetTestSystem.LastPayload).AsCollection);
+                Assert.That(payload, Is.Not.EqualTo(deviceNetTestSystem.LastPayload));
             });
 
             await pair.CleanReturnAsync();
@@ -232,11 +230,11 @@ namespace Content.IntegrationTests.Tests.DeviceNetwork
             var grid = testMap.Grid.Comp;
 
             var testValue = "test";
-            var payload = new NetworkPayload
+            var payload = new TestPayload
             {
-                ["Test"] = testValue,
-                ["testnumber"] = 1,
-                ["testbool"] = true
+                TestString = testValue,
+                TestNumber = 1,
+                TestBool = true
             };
 
             await server.WaitRunTicks(2);

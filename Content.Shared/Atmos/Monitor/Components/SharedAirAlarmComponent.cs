@@ -48,6 +48,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared.DeviceNetwork;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.Atmos.Monitor.Components;
@@ -77,7 +78,9 @@ public enum AirAlarmWireStatus
     DeviceSync
 }
 
-public interface IAtmosDeviceData
+[Serializable, NetSerializable]
+[ImplicitDataDefinitionForInheritors]
+public abstract partial class AtmosDeviceDataPayload : NetworkPayload
 {
     public bool Enabled { get; set; }
     public bool Dirty { get; set; }
@@ -87,7 +90,7 @@ public interface IAtmosDeviceData
 [Serializable, NetSerializable]
 public sealed class AirAlarmUIState : BoundUserInterfaceState
 {
-    public AirAlarmUIState(string address, int deviceCount, float pressureAverage, float temperatureAverage, List<(string, IAtmosDeviceData)> deviceData, AirAlarmMode mode, AtmosAlarmType alarmType, bool autoMode, bool panicWireCut)
+    public AirAlarmUIState(string address, int deviceCount, float pressureAverage, float temperatureAverage, List<(string, AtmosDeviceDataPayload)> deviceData, AirAlarmMode mode, AtmosAlarmType alarmType, bool autoMode, bool panicWireCut)
     {
         Address = address;
         DeviceCount = deviceCount;
@@ -111,7 +114,7 @@ public sealed class AirAlarmUIState : BoundUserInterfaceState
     ///     data. The same address may appear multiple times, if
     ///     that device provides multiple functions.
     /// </summary>
-    public List<(string, IAtmosDeviceData)> DeviceData { get; }
+    public List<(string, AtmosDeviceDataPayload)> DeviceData { get; }
     public AirAlarmMode Mode { get; }
     public AtmosAlarmType AlarmType { get; }
     public bool AutoMode { get; }
@@ -148,9 +151,9 @@ public sealed class AirAlarmUpdateAutoModeMessage : BoundUserInterfaceMessage
 public sealed class AirAlarmUpdateDeviceDataMessage : BoundUserInterfaceMessage
 {
     public string Address { get; }
-    public IAtmosDeviceData Data { get; }
+    public AtmosDeviceDataPayload Data { get; }
 
-    public AirAlarmUpdateDeviceDataMessage(string addr, IAtmosDeviceData data)
+    public AirAlarmUpdateDeviceDataMessage(string addr, AtmosDeviceDataPayload data)
     {
         Address = addr;
         Data = data;
@@ -160,9 +163,9 @@ public sealed class AirAlarmUpdateDeviceDataMessage : BoundUserInterfaceMessage
 [Serializable, NetSerializable]
 public sealed class AirAlarmCopyDeviceDataMessage : BoundUserInterfaceMessage
 {
-    public IAtmosDeviceData Data { get; }
+    public AtmosDeviceDataPayload Data { get; }
 
-    public AirAlarmCopyDeviceDataMessage(IAtmosDeviceData data)
+    public AirAlarmCopyDeviceDataMessage(AtmosDeviceDataPayload data)
     {
         Data = data;
     }

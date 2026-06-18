@@ -386,64 +386,43 @@ public sealed class FaxSystem : EntitySystem
         if (!HasComp<DeviceNetworkComponent>(uid) || string.IsNullOrEmpty(args.SenderAddress))
             return;
 
-        if (args.Data.TryGetValue(DeviceNetworkConstants.Command, out string? command))
+        switch (args.Data)
         {
-            switch (command)
-            {
-                case FaxConstants.FaxPingCommand:
-                    var isForSyndie = _emag.CheckFlag(uid, EmagType.Interaction) &&
-                                      args.Data.ContainsKey(FaxConstants.FaxSyndicateData);
-                    if (!isForSyndie && !component.ResponsePings)
-                        return;
+            case FaxPingPayload ping:
+                var isForSyndie = _emag.CheckFlag(uid, EmagType.Interaction) && ping.IsSyndicate;
+                if (!isForSyndie && !component.ResponsePings)
+                    return;
 
-                    var payload = new NetworkPayload()
-                    {
-                        { DeviceNetworkConstants.Command, FaxConstants.FaxPongCommand },
-                        { FaxConstants.FaxNameData, component.FaxName }
-                    };
-                    _deviceNetworkSystem.QueuePacket(uid, args.SenderAddress, payload);
+                var payload = new FaxPongPayload
+                {
+                    FaxName =  component.FaxName,
+                };
+                _deviceNetworkSystem.QueuePacket(uid, args.SenderAddress, payload);
 
-                    break;
-                case FaxConstants.FaxPongCommand:
-                    if (!args.Data.TryGetValue(FaxConstants.FaxNameData, out string? faxName))
-                        return;
+                break;
+            case FaxPongPayload pong:
+                component.KnownFaxes[args.SenderAddress] = pong.FaxName;
+                UpdateUserInterface(uid, component);
+                break;
+            case FaxPrintPayload print:
+                Receive(uid, print.Data, args.SenderAddress);
+                break;
+            // Goobstation
+            case FaxSendEntityPayload entity:
+                if (entity.Entity == null
+                    || TerminatingOrDeleted(entity.Entity))
+                    return;
 
-                    component.KnownFaxes[args.SenderAddress] = faxName;
+                var teleport = entity.Entity.Value;
+                if (!entity.CrossGrids
+                    && _transform.GetGrid(uid) != _transform.GetGrid(teleport))
+                    return;
 
-                    UpdateUserInterface(uid, component);
-
-                    break;
-                case FaxConstants.FaxPrintCommand:
-                    if (!args.Data.TryGetValue(FaxConstants.FaxPaperNameData, out string? name) ||
-                        !args.Data.TryGetValue(FaxConstants.FaxPaperContentData, out string? content))
-                        return;
-
-                    args.Data.TryGetValue(FaxConstants.FaxPaperLabelData, out string? label);
-                    args.Data.TryGetValue(FaxConstants.FaxPaperStampStateData, out string? stampState);
-                    args.Data.TryGetValue(FaxConstants.FaxPaperStampedByData, out List<StampDisplayInfo>? stampedBy);
-                    args.Data.TryGetValue(FaxConstants.FaxPaperPrototypeData, out string? prototypeId);
-                    args.Data.TryGetValue(FaxConstants.FaxPaperLockedData, out bool? locked);
-
-                    var printout = new FaxPrintout(content, name, label, prototypeId, stampState, stampedBy, locked ?? false);
-                    Receive(uid, printout, args.SenderAddress);
-
-                    break;
-                // Goobstation
-                case FaxConstants.FaxSendEntityCommand:
-                    if (!args.Data.TryGetValue(FaxConstants.FaxEntitySentData, out EntityUid? received))
-                        return;
-
-                    args.Data.TryGetValue(FaxConstants.FaxWorkCrossGridData, out bool? canCrossGrid);
-                    if (!(canCrossGrid ?? true) && _transform.GetGrid(uid) != _transform.GetGrid(received.Value))
-                        return;
-
-                    var faxXform = Transform(uid);
-                    _transform.SetCoordinates(received.Value, faxXform.Coordinates);
-                    _container.AttachParentToContainerOrGrid((received.Value, Transform(received.Value)));
-                    Receive(uid, null, args.SenderAddress);
-
-                    break;
-            }
+                var faxXform = Transform(uid);
+                _transform.SetCoordinates(teleport, faxXform.Coordinates);
+                _container.AttachParentToContainerOrGrid((teleport, Transform(teleport)));
+                Receive(uid, null, args.SenderAddress);
+                break;
         }
     }
 
@@ -560,13 +539,10 @@ public sealed class FaxSystem : EntitySystem
         component.DestinationFaxAddress = null;
         component.KnownFaxes.Clear();
 
-        var payload = new NetworkPayload()
+        var payload = new FaxPingPayload
         {
-            { DeviceNetworkConstants.Command, FaxConstants.FaxPingCommand }
+            IsSyndicate = _emag.CheckFlag(uid, EmagType.Interaction),
         };
-
-        if (_emag.CheckFlag(uid, EmagType.Interaction))
-            payload.Add(FaxConstants.FaxSyndicateData, true);
 
         _deviceNetworkSystem.QueuePacket(uid, null, payload);
     }
@@ -672,34 +648,24 @@ public sealed class FaxSystem : EntitySystem
            !TryComp<PaperComponent>(sendEntity, out var paper))
             return;
 
+        if (metadata.EntityPrototype == null)
+            return;
+
         TryComp<NameModifierComponent>(sendEntity, out var nameMod);
 
         TryComp<LabelComponent>(sendEntity, out var labelComponent);
 
-        var payload = new NetworkPayload()
+        var payload = new FaxPrintPayload
         {
-            // Goobstation merge conflict landmine: if how faxes work is changed FaxSlipSystem.cs might become broken
-            { DeviceNetworkConstants.Command, FaxConstants.FaxPrintCommand },
-            { FaxConstants.FaxPaperNameData, nameMod?.BaseName ?? metadata.EntityName },
-            { FaxConstants.FaxPaperLabelData, labelComponent?.CurrentLabel },
-            { FaxConstants.FaxPaperContentData, paper.Content },
-            { FaxConstants.FaxPaperLockedData, paper.EditingDisabled },
+            Data = new FaxPrintout(
+                    paper.Content,
+                    nameMod?.BaseName ?? metadata.EntityName,
+                    labelComponent?.CurrentLabel,
+                    metadata.EntityPrototype.ID,
+                    paper.StampState,
+                    paper.StampedBy,
+                    paper.EditingDisabled),
         };
-
-        if (metadata.EntityPrototype != null)
-        {
-            // TODO: Ideally, we could just make a copy of the whole entity when it's
-            // faxed, in order to preserve visuals, etc.. This functionality isn't
-            // available yet, so we'll pass along the originating prototypeId and fall
-            // back to component.PrintPaperId in SpawnPaperFromQueue if we can't find one here.
-            payload[FaxConstants.FaxPaperPrototypeData] = metadata.EntityPrototype.ID;
-        }
-
-        if (paper.StampState != null)
-        {
-            payload[FaxConstants.FaxPaperStampStateData] = paper.StampState;
-            payload[FaxConstants.FaxPaperStampedByData] = paper.StampedBy;
-        }
 
         _deviceNetworkSystem.QueuePacket(uid, component.DestinationFaxAddress, payload);
 

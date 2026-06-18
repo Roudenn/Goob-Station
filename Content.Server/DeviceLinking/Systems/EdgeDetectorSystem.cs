@@ -9,7 +9,6 @@
 
 using Content.Server.DeviceLinking.Components;
 using Content.Shared.DeviceLinking;
-using Content.Shared.DeviceNetwork;
 using Content.Shared.DeviceLinking.Events;
 
 namespace Content.Server.DeviceLinking.Systems;
@@ -35,10 +34,11 @@ public sealed class EdgeDetectorSystem : EntitySystem
     private void OnSignalReceived(EntityUid uid, EdgeDetectorComponent comp, ref SignalReceivedEvent args)
     {
         // only handle signals with edges
-        var state = SignalState.Momentary;
-        if (args.Data == null ||
-            !args.Data.TryGetValue(DeviceNetworkConstants.LogicState, out state) ||
-            state == SignalState.Momentary)
+        if (args.Data is not LogicStatePayload payload)
+            return;
+
+        var state = payload.State;
+        if (state == SignalState.Momentary)
             return;
 
         if (args.Port != comp.InputPort)

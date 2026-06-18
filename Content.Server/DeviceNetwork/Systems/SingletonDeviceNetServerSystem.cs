@@ -147,10 +147,10 @@ public sealed class SingletonDeviceNetServerSystem : EntitySystem
         var connectedEvent = new DeviceNetServerConnectedEvent();
         RaiseLocalEvent(uid, ref connectedEvent);
 
-        if (_deviceNetworkSystem.IsDeviceConnected(uid, device))
+        if (_deviceNetworkSystem.IsDeviceConnected((uid, device)))
             return;
 
-        _deviceNetworkSystem.ConnectDevice(uid, device);
+        _deviceNetworkSystem.ConnectDevice((uid, device));
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public sealed class SingletonDeviceNetServerSystem : EntitySystem
         var disconnectedEvent = new DeviceNetServerDisconnectedEvent();
         RaiseLocalEvent(uid, ref disconnectedEvent);
 
-        _deviceNetworkSystem.DisconnectDevice(uid, device, false);
+        _deviceNetworkSystem.DisconnectDevice((uid, device), false);
     }
 }
 

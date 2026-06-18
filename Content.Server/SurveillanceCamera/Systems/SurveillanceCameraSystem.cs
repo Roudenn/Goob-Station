@@ -120,8 +120,10 @@ public sealed class SurveillanceCameraSystem : EntitySystem
         SubscribeLocalEvent<SurveillanceCameraComponent, EmpDisabledRemoved>(OnEmpDisabledRemoved);
     }
 
-    private void OnPacketReceived(EntityUid uid, SurveillanceCameraComponent component, DeviceNetworkPacketEvent args)
+    private void OnPacketReceived(Entity<SurveillanceCameraComponent> ent, ref DeviceNetworkPacketEvent args)
     {
+        var (uid, component) = ent;
+
         if (!component.Active)
         {
             return;

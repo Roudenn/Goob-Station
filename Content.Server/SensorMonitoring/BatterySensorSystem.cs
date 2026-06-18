@@ -24,7 +24,7 @@ public sealed class BatterySensorSystem : EntitySystem
         SubscribeLocalEvent<BatterySensorComponent, DeviceNetworkPacketEvent>(PacketReceived);
     }
 
-    private void PacketReceived(EntityUid uid, BatterySensorComponent component, DeviceNetworkPacketEvent args)
+    private void PacketReceived(Entity<BatterySensorComponent> ent, ref DeviceNetworkPacketEvent args)
     {
         if (!args.Data.TryGetValue(DeviceNetworkConstants.Command, out string? cmd))
             return;
@@ -32,8 +32,8 @@ public sealed class BatterySensorSystem : EntitySystem
         switch (cmd)
         {
             case DeviceNetworkCommandSyncData:
-                var battery = Comp<BatteryComponent>(uid);
-                var netBattery = Comp<PowerNetworkBatteryComponent>(uid);
+                var battery = Comp<BatteryComponent>(ent);
+                var netBattery = Comp<PowerNetworkBatteryComponent>(ent);
 
                 var payload = new NetworkPayload
                 {
@@ -47,7 +47,7 @@ public sealed class BatterySensorSystem : EntitySystem
                         netBattery.MaxSupply)
                 };
 
-                _deviceNetwork.QueuePacket(uid, args.SenderAddress, payload);
+                _deviceNetwork.QueuePacket(ent, args.SenderAddress, payload);
                 break;
         }
     }

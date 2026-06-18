@@ -36,6 +36,7 @@
 
 using Content.Server.Power.EntitySystems;
 using Content.Server.PowerCell;
+using Content.Shared.DeviceNetwork;
 using Content.Shared.DeviceNetwork.Components;
 using Content.Shared.Interaction;
 using Content.Shared.PowerCell.Components;
@@ -107,7 +108,7 @@ public sealed class JammerSystem : SharedJammerSystem
             EnsureComp<ActiveRadioJammerComponent>(ent);
             EnsureComp<DeviceNetworkJammerComponent>(ent, out var jammingComp);
             _jammer.SetRange((ent, jammingComp), GetCurrentRange(ent));
-            _jammer.AddJammableNetwork((ent, jammingComp), DeviceNetworkComponent.DeviceNetIdDefaults.Wireless.ToString());
+            _jammer.AddJammableNetwork((ent, jammingComp), nameof(DeviceNetIdDefaults.Wireless));
         }
         else
         {

@@ -491,8 +491,9 @@ namespace Content.Server.Light.EntitySystems
         /// Turns the light on or of when receiving a <see cref="DeviceNetworkConstants.CmdSetState"/> command.
         /// The light is turned on or of according to the <see cref="DeviceNetworkConstants.StateEnabled"/> value
         /// </summary>
-        private void OnPacketReceived(EntityUid uid, PoweredLightComponent component, DeviceNetworkPacketEvent args)
+        private void OnPacketReceived(Entity<PoweredLightComponent> ent, ref DeviceNetworkPacketEvent args)
         {
+            var (uid, component) = ent;
             if (!args.Data.TryGetValue(DeviceNetworkConstants.Command, out string? command) || command != DeviceNetworkConstants.CmdSetState) return;
             if (!args.Data.TryGetValue(DeviceNetworkConstants.StateEnabled, out bool enabled)) return;
 

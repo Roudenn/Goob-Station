@@ -46,7 +46,7 @@ public abstract class SharedMailingUnitSystem : EntitySystem
         UpdateTargetList(uid, component);
     }
 
-    private void OnPacketReceived(EntityUid uid, MailingUnitComponent component, DeviceNetworkPacketEvent args)
+    private void OnPacketReceived(EntityUid uid, MailingUnitComponent component, ref DeviceNetworkPacketEvent args)
     {
         if (!args.Data.TryGetValue(DeviceNetworkConstants.Command, out string? command) || !_power.IsPowered(uid))
             return;

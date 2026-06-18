@@ -39,7 +39,7 @@ public sealed class BatterySensorSystem : EntitySystem
                         netBattery.MaxSupply),
                 };
 
-                _deviceNetwork.QueuePacket(ent, args.SenderAddress, payload);
+                _deviceNetwork.QueuePacket(ent.Owner, args.SenderAddress, payload);
                 break;
         }
     }

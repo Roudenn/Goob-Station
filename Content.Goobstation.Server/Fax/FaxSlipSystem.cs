@@ -66,7 +66,7 @@ public sealed class FaxSlipSystem : EntitySystem
                 CrossGrids = ent.Comp.CrossGrid,
             };
 
-            _deviceNetwork.QueuePacket(args.Fax, args.Fax.Comp.DestinationFaxAddress, payload);
+            _deviceNetwork.QueuePacket(args.Fax.Owner, args.Fax.Comp.DestinationFaxAddress, payload);
 
             var actor = args.Args.Actor;
             if (actor.IsValid())

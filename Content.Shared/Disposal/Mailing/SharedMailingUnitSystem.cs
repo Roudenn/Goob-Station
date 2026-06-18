@@ -103,7 +103,7 @@ public abstract class SharedMailingUnitSystem : EntitySystem
             Target = component.Target
         };
 
-        _deviceNetworkSystem.QueuePacket(uid, null, payload, null, null, device);
+        _deviceNetworkSystem.QueuePacket((uid, device), null, payload);
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public abstract class SharedMailingUnitSystem : EntitySystem
 
         var payload = new MailRequestTagPayload();
         component.TargetList.Clear();
-        _deviceNetworkSystem.QueuePacket(uid, null, payload, null, null, device);
+        _deviceNetworkSystem.QueuePacket((uid, device), null, payload);
     }
 
     /// <summary>
